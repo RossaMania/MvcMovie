@@ -19,12 +19,6 @@ namespace MvcMovie.Controllers
             _context = context;
         }
 
-        [HttpPost]
-        public string Index(string searchString, bool notUsed)
-        {
-            return "From [HttpPost]Index: filter on " + searchString;
-        }
-
         // GET: Movies
         public async Task<IActionResult> Index(string movieGenre, string searchString)
         {
