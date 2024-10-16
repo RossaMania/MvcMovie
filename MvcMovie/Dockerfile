@@ -2,13 +2,16 @@
 
 # This stage is used when running from VS in fast mode (Default for Debug configuration)
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS base
-USER app
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
 
+# Switch to root user to install ICU libraries
+USER root
 # Install ICU libraries for globalization support
 RUN apk add --no-cache icu-libs
+# Switch back to app user
+USER app
 
 # This stage is used to build the service project
 FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
