@@ -384,6 +384,15 @@ FodyWeavers.xsd
 !.vscode/extensions.json
 *.code-workspace
 
+# Logs and database files
+logs/
+*.log
+data/ # This will ignore your Docker PostgreSQL data
+
+# Ignore user secrets
+*.json
+Secrets/
+
 # Local History for Visual Studio Code
 .history/
 

@@ -3,10 +3,16 @@ using Microsoft.Extensions.DependencyInjection;
 using MvcMovie.Data;
 using MvcMovie.Models;
 
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 var builder = WebApplication.CreateBuilder(args);
 
+// Add configuration for User Secrets
+builder.Configuration.AddUserSecrets<Program>();
+
+// Update to use PostgreSQL
 builder.Services.AddDbContext<MvcMovieContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("MvcMovieContext")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("MvcMovieContext"))); // Use PostgreSQL instead of SQLite
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -24,7 +30,6 @@ using (var scope = app.Services.CreateScope())
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
