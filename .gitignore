@@ -403,5 +403,8 @@ Secrets/
 *.msm
 *.msp
 
+# Ignore environment variable files
+.env
+
 # JetBrains Rider
 *.sln.iml

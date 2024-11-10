@@ -7,26 +7,30 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add configuration for User Secrets
-builder.Configuration.AddUserSecrets<Program>();
+// Add services to the container, using the environment variable for the connection string
+var connectionString = Environment.GetEnvironmentVariable("MVCMOVIE_CONNECTIONSTRING");
 
-// Update to use PostgreSQL
 builder.Services.AddDbContext<MvcMovieContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("MvcMovieContext"))); // Use PostgreSQL instead of SQLite
+    options.UseNpgsql(connectionString ?? builder.Configuration.GetConnectionString("MvcMovieContext")));
 
-// Add services to the container.
+// Add services to the container
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
+// Ensure migrations are applied and seed the database
+await using (var scope = app.Services.CreateAsyncScope())
 {
     var services = scope.ServiceProvider;
 
+    var db = services.GetRequiredService<MvcMovieContext>();
+    await db.Database.MigrateAsync();
+
+    // Seed the database with initial data
     SeedData.Initialize(services);
 }
 
-// Configure the HTTP request pipeline.
+// Configure the HTTP request pipeline
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");

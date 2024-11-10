@@ -1,35 +1,14 @@
-# See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
-
-# This stage is used when running from VS in fast mode (Default for Debug configuration)
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS base
-WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
-
-# Switch to root user to install ICU libraries
-USER root
-# Install ICU libraries for globalization support
-RUN apk add --no-cache icu-libs
-# Switch back to app user
-USER app
-
-# This stage is used to build the service project
 FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
-ARG BUILD_CONFIGURATION=Release
-WORKDIR /src
-COPY ["MvcMovie/MvcMovie.csproj", "MvcMovie/"]
-RUN dotnet restore "./MvcMovie/MvcMovie.csproj"
-COPY . .
-WORKDIR "/src/MvcMovie"
-RUN dotnet build "./MvcMovie.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-# This stage is used to publish the service project to be copied to the final stage
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./MvcMovie.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+WORKDIR /app
+COPY "./MvcMovie.csproj" .
+RUN dotnet restore "./MvcMovie.csproj"
+COPY . .
+RUN dotnet publish "./MvcMovie.csproj" -o /app/publish
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
-FROM base AS final
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "MvcMovie.dll"]
+COPY --from=build /app/publish .
+ENTRYPOINT ["./MvcMovie"]
+ENV ASPNETCORE_URLS=http://+:80
